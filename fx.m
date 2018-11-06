@@ -8,12 +8,11 @@ function fx = fx(slip,vt,parameters)
 % Output:
 %   fx          Thrust force
 
-%Define variables
-if nargin > 1
-    parameters.s = slip;
-    parameters.vt = vt;
-end
+% Write slip and current speed into paramteres structure
+parameters.s = slip;
+parameters.vt = vt;
 
+% Calculate slip and corresponding driving force
 fx = calc_Final(parameters,[1 0 0]);
 
 end

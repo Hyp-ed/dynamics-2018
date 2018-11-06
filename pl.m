@@ -8,12 +8,11 @@ function pl = pl(slip,vt,parameters)
 % Output:
 %   pl          Power loss
 
-%Define variables
-if nargin > 1
-    parameters.s = slip;
-    parameters.vt = vt;
-end
+% Write slip and current speed into paramteres structure
+parameters.s = slip;
+parameters.vt = vt;
 
+% Calculate power loss
 pl = calc_Final(parameters,[0 0 1]);
 
 end

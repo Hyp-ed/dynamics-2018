@@ -20,9 +20,9 @@ clear; clc;
 %% Define parameters
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
-tmax = 80;          % Maximum allowed duration of run
+tmax = 17;          % Maximum allowed duration of run
 n_wheel = 6;        % Number of wheels
-distance_max = 450; % Experimentally found value for maximum distance of accelertaion phase
+distance_max = 900; % Experimentally found value for maximum distance of accelertaion phase
 
 % Import parameters from .xlsx
 halbach_wheel_parameters = importHalbachWheelParameters(); % './Parameters/HalbachWheel_parameters.xlsx'
@@ -45,15 +45,15 @@ time = 0:dt:tmax;                       % Create time array with time step dt an
 v = zeros(1,length(time));              % Velocity of pod
 a = zeros(1,length(time));              % Acceleration of pod
 distance = zeros(1,length(time));       % Distance travelled
-omega = zeros(1,length(time));          % Angular velocity of Halbach wheel
-torque = zeros(1,length(time));         % Torque on Halbach wheel
+omega = zeros(1,length(time));          % Angular velocity of Halbach wheels
+torque = zeros(1,length(time));         % Torque on Halbach wheels
 power = zeros(1,length(time));          % Power
 efficiency = zeros(1,length(time));     % Power output / Power input
-slips = zeros(1,length(time));          % Slip between Halbach wheel and track
-f_thrust_wheel = zeros(1,length(time)); % Thrust force from wheels
-f_lat_wheel = zeros(1,length(time));    % Lateral force from halbach wheel    
-f_drag_pod = zeros(1,length(time));     % Drag force for whole pod
-f_lift_pod = zeros(1,length(time));     % Lift force for whole pod (UNUSED)
+slips = zeros(1,length(time));          % Slip between Halbach wheels and track
+f_thrust_wheel = zeros(1,length(time)); % Thrust force from Halbach wheels
+f_lat_wheel = zeros(1,length(time));    % Lateral force from Halbach wheels   
+f_x_pod = zeros(1,length(time));        % Force in direction of track (x) for whole pod
+f_y_pod = zeros(1,length(time));        % Force in vertical direction (y) for whole pod (UNUSED)
 
 %% Start for loop for acceleration phase 
 for i = 2:length(time)
@@ -76,10 +76,10 @@ for i = 2:length(time)
     halbach_wheel_parameters.s = slips(i);
     
     % Calculate total drag force
-    f_drag_pod(i) = f_thrust_wheel(i);
+    f_x_pod(i) = f_thrust_wheel(i);
     
     % Calculate acceleration, velocity and distance
-    a(i) = f_drag_pod(i)/halbach_wheel_parameters.M;
+    a(i) = f_x_pod(i)/halbach_wheel_parameters.M;
     v(i) = v(i-1) + dt*a(i);
     distance(i) = distance(i-1)+dt*v(i); %forward euler (should we use backward euler)
     
@@ -109,10 +109,10 @@ for i = k+1:length(time)
 
 
     % Calculate total drag force
-    f_drag_pod(i) = f_thrust_wheel(i);
+    f_x_pod(i) = f_thrust_wheel(i);
     
     % Acceleration, velocity and distance
-    a(i) = f_drag_pod(i)/halbach_wheel_parameters.M;
+    a(i) = f_x_pod(i)/halbach_wheel_parameters.M;
     v(i) = v(i-1) + dt*a(i);
     distance(i) = distance(i-1)+dt*v(i);
     
@@ -156,10 +156,10 @@ for i = k+1:length(time)
     halbach_wheel_parameters.s = slips(i);
     
     % Calculate total drag force
-    f_drag_pod(i) = f_thrust_wheel(i);
+    f_x_pod(i) = f_thrust_wheel(i);
 
     % Acceleration, velocity and distance
-    a(i) = f_drag_pod(i)/halbach_wheel_parameters.M;
+    a(i) = f_x_pod(i)/halbach_wheel_parameters.M;
     v(i) = v(i-1) + dt*a(i);
     distance(i) = distance(i-1)+dt*v(i);
    
@@ -179,7 +179,7 @@ end
 
 %% Truncate arrays and create struct array to store results 
 result = finalizeResults(k, time, distance, v, a, omega * 60 / (2*pi), torque, f_thrust_wheel, f_lat_wheel,...
-                         f_drag_pod, f_lift_pod, power, efficiency, slips);
+                         f_x_pod, f_y_pod, power, efficiency, slips);
 
 %% Plot the trajectory graphs
 plotTrajectory(result.time,result.distance,result.velocity);
