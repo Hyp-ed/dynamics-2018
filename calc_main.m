@@ -1,10 +1,11 @@
-function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,m_omega,v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,~,halbach_wheel_parameters)
+function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters)
 % CALC_MAIN Calculates trajectory values at each point in time.
 % calc_main gets called at each iteration and handles the phases of the 
 % trajectory via a passed phase input argument (first).
 % phase = 1 -- Acceleration
 % phase = 2 -- Deceleration
 % phase = 3 -- Max RPM
+% @author      ?, Andreas Malekos, Rafael Anderka
 
 % Calculate Halbach wheel thrust force and slip
 switch phase
@@ -23,7 +24,7 @@ switch phase
         omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
     case 3 % Max RPM
         % Set omega to max. omega
-        omega(i) = m_omega;
+        omega(i) = halbach_wheel_parameters.m_omega;
         slips(i) = omega(i)*halbach_wheel_parameters.ro - v(i-1);
         f_thrust_wheel(i) = fx(slips(i), v(i-1), halbach_wheel_parameters);
 

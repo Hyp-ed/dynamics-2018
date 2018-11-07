@@ -21,15 +21,11 @@ clear; clc;
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 6;        % Number of wheels
+n_wheel = 1;        % Number of wheels
 distance_max = 450; % Experimentally found value for maximum distance of accelertaion phase 450
 
-% Import parameters from .xlsx
-halbach_wheel_parameters = importHalbachWheelParameters(); % './Parameters/HalbachWheel_parameters.xlsx'
-halbach_array_parameters = importHalbachArrayParameters(); % './Parameters/HalbachArray_parameters.xlsx'
-
-% Define max. possible angular velocity of Halbach wheel for imported parameter max. rpm
-m_omega = m_rpm/60*2*pi;
+% Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
+halbach_wheel_parameters = importHalbachWheelParameters();
 
 
 %% Initialize arrays
@@ -65,13 +61,13 @@ phase = 1; % We start in the acceleration phase
 for i = 2:length(time) % Start at i = 2 because values are all init at 1
     %% Phase transitions
     % If we have exceeded the max. RPM we cap the RPM and recalculate
-    if (omega(i-1) * 60 / (2*pi)) > m_rpm
+    if (omega(i-1) * 60 / (2*pi)) > halbach_wheel_parameters.m_rpm
         phase = 3; % Max RPM
         
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
         [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-        calc_main(phase, i - 1, dt, n_wheel, m_omega, v, a, distance, omega, torque, power, efficiency, slips, ...
-                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_array_parameters, halbach_wheel_parameters);
+        calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, power, efficiency, slips, ...
+                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters);
     end
     
     % If we have reached the maximum allowed acceleration distance we 
@@ -79,13 +75,13 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     if distance(i-1) >= distance_max
         phase = 2; % Deceleration
     end
-
+    
     
     %% Main calculation
     % Calculate for current time = i
     [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-    calc_main(phase, i, dt, n_wheel, m_omega, v, a, distance, omega, torque, power, efficiency, slips, ...
-              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_array_parameters, halbach_wheel_parameters);
+    calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, power, efficiency, slips, ...
+              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters);
     
     %% Exit conditions
     % Stop when speed is 0m/s or time is up
@@ -98,13 +94,18 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     end
 end
 
-%% Plot the trajectory graphs and print some results
-plotTrajectory(result.time,result.distance,result.velocity);
+%% Print some results
+% Find max. speed and x force
 v_max = max(result.velocity);
 f_x_max = max(result.pod_x);
+% Let's display some stuff for quick viewing
 fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s\n', v_max);
 fprintf('\nMaximum net x-force: %.2f N\n', f_x_max);
+
+%% Plot the trajectory graphs
+plotTrajectory(result.time,result.distance,result.velocity);
+
 

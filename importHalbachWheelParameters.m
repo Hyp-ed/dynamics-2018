@@ -18,10 +18,10 @@ params_filepath = './Parameters/HalbachWheel_parameters.xlsx';
 %   4 COLUMN of the variable names to be imported
 %   5 range of ROWS of the variable values to be imported
 %   6 COLUMN of the variable values to be imported
-Constants = importSpreadsheet(params_filepath, 'Constants', 3:8, 3, 3:8, 4);
-Variables = importSpreadsheet(params_filepath, 'Variables', 3:6, 3, 3:6, 4);
-Tube      = importSpreadsheet(params_filepath, 'Tube',      3:3, 3, 3:3, 4);
-Pod       = importSpreadsheet(params_filepath, 'Pod',       3:8, 3, 3:8, 4);
+Constants = importSpreadsheet(params_filepath, 'Constants', 3:8,  3, 3:8,  4);
+Variables = importSpreadsheet(params_filepath, 'Variables', 3:4,  3, 3:4,  4);
+Tube      = importSpreadsheet(params_filepath, 'Tube',      3:3,  3, 3:3,  4);
+Pod       = importSpreadsheet(params_filepath, 'Pod',       3:11, 3, 3:11, 4);
 
 % Put all variables in a single cell array and create a parameter structure
 FullArray = [Constants;Variables;Tube;Pod];                     % Create a single array with all variables
