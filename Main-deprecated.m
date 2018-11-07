@@ -28,14 +28,8 @@ distance_max = 900; % Experimentally found value for maximum distance of acceler
 halbach_wheel_parameters = importHalbachWheelParameters(); % './Parameters/HalbachWheel_parameters.xlsx'
 halbach_array_parameters = importHalbachArrayParameters(); % './Parameters/HalbachArray_parameters.xlsx'
 
-% These parameters should be moved into excel and their references need to
-% be replaced accordingly
-m_alpha = 111.755;
-rpm_max = 10000;
-
 % Define max. possible angular velocity of Halbach wheel for specified max. rpm
-m_omega = rpm_max/60*2*pi;
-
+m_omega = m_rpm/60*2*pi;
 
 
 %% Initialize arrays
@@ -92,7 +86,7 @@ for i = 2:length(time)
 
     k = i;
     % if reaches max rpm or max distance, go to next loop
-    if (omega(i)*9.55 >= rpm_max) || (distance(i) > distance_max)
+    if (omega(i)*9.55 >= m_rpm) || (distance(i) > distance_max)
         break;
     end
 end
