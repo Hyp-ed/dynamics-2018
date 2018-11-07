@@ -1,4 +1,4 @@
-function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,m_omega,m_alpha,v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_array_parameters,halbach_wheel_parameters)
+function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,m_omega,v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,~,halbach_wheel_parameters)
 % CALC_MAIN Calculates trajectory values at each point in time.
 % calc_main gets called at each iteration and handles the phases of the 
 % trajectory via a passed phase input argument (first).
@@ -31,13 +31,13 @@ end
 
 % Cap angular velocity if the angular acceleration is too big (assume linear increase)
 alpha = abs(omega(i)-omega(i-1))/dt; % Calculate angular acceleration in change of omega
-if alpha > m_alpha
+if alpha > halbach_wheel_parameters.m_alpha
     % Recalculate omega for max. angular acceleration
     switch phase
         case 1 % Acceleration    
-            omega(i) = omega(i-1) + m_alpha*dt;
+            omega(i) = omega(i-1) + halbach_wheel_parameters.m_alpha*dt;
         case 2 % Deceleration
-            omega(i) = omega(i-1) - m_alpha*dt;
+            omega(i) = omega(i-1) - halbach_wheel_parameters.m_alpha*dt;
     end
     % Recalculate slip and Halbach wheel thrust
     slips(i) = halbach_wheel_parameters.ro*omega(i) - v(i-1);

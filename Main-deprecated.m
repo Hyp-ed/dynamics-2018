@@ -29,7 +29,7 @@ halbach_wheel_parameters = importHalbachWheelParameters(); % './Parameters/Halba
 halbach_array_parameters = importHalbachArrayParameters(); % './Parameters/HalbachArray_parameters.xlsx'
 
 % Define max. possible angular velocity of Halbach wheel for imported max. rpm
-m_omega = m_rpm/60*2*pi;
+m_omega = halbach_wheel_parameters.m_rpm/60*2*pi;
 
 
 %% Initialize arrays
@@ -62,8 +62,8 @@ for i = 2:length(time)
     
     % Cap omega, if the angular acceleration is too huge (assume linear increase)
     omega_slope = abs(omega(i)-omega(i-1))/dt; % Calculate slope in change of omega
-    if omega_slope > m_alpha
-        omega(i) = omega(i-1) + m_alpha*dt;
+    if omega_slope > halbach_wheel_parameters.m_alpha
+        omega(i) = omega(i-1) + halbach_wheel_parameters.m_alpha*dt;
         slips(i) = halbach_wheel_parameters.ro*omega(i) - v(i-1);
         f_thrust_wheel(i) = halbach_wheel_parameters.w*n_wheel*fx(slips(i), v(i-1), halbach_wheel_parameters); 
     end
@@ -141,8 +141,8 @@ for i = k+1:length(time)
     
     % Cap omega, if the angular deceleration is too huge (assume linear increase)
     omega_slope = abs(omega(i)-omega(i-1))/dt; % Calculate slope in change of omega
-    if omega_slope > m_alpha 
-        omega(i) = omega(i-1) - m_alpha*dt;
+    if omega_slope > halbach_wheel_parameters.m_alpha 
+        omega(i) = omega(i-1) - halbach_wheel_parameters.m_alpha*dt;
         slips(i) = halbach_wheel_parameters.ro*omega(i) - v(i-1);
         f_thrust_wheel(i) = halbach_wheel_parameters.w*n_wheel*fx(slips(i), v(i-1), halbach_wheel_parameters); 
     end
