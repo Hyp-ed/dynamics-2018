@@ -5,6 +5,7 @@ function [ Parameter ] = importHalbachWheelParameters()
 %    [ Parameter ]      Parameter structure containing imported variables
 %  @author              ?, HypED
 %  Modified:            Rafael Anderka 02/11/2018
+%  Modified:            Simona Prokopovic 07/11/2018
 
 % Set filepath to the excel workbook
 params_filepath = './Parameters/HalbachWheel_parameters.xlsx';
@@ -18,7 +19,7 @@ params_filepath = './Parameters/HalbachWheel_parameters.xlsx';
 %   5 range of ROWS of the variable values to be imported
 %   6 COLUMN of the variable values to be imported
 Constants = importSpreadsheet(params_filepath, 'Constants', 3:8, 3, 3:8, 4);
-Variables = importSpreadsheet(params_filepath, 'Variables', 3:4, 3, 3:4, 4);
+Variables = importSpreadsheet(params_filepath, 'Variables', 3:6, 3, 3:6, 4);
 Tube      = importSpreadsheet(params_filepath, 'Tube',      3:3, 3, 3:3, 4);
 Pod       = importSpreadsheet(params_filepath, 'Pod',       3:8, 3, 3:8, 4);
 
