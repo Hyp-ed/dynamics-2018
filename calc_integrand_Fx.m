@@ -47,7 +47,6 @@ function FxInt = calc_integrand_Fx( xi, omegae, C, Input )
     Bsxy = Bsx+1j.*Bsy; % equation (25)
     By = -1i.*xi.*T.*Bsxy; % equation (33)
     Bx = dT.*Bsxy; % equation (34)
-    disp(Bx);
     % Integrands
     k = 1./(4.*pi.*mu0);
 

@@ -21,7 +21,7 @@ clear; clc;
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 6;        % Number of wheels
+n_wheel = 1;        % Number of wheels
 distance_max = 450; % Experimentally found value for maximum distance of accelertaion phase 450
 
 % Import parameters from .xlsx
@@ -29,7 +29,7 @@ halbach_wheel_parameters = importHalbachWheelParameters(); % './Parameters/Halba
 halbach_array_parameters = importHalbachArrayParameters(); % './Parameters/HalbachArray_parameters.xlsx'
 
 % Define max. possible angular velocity of Halbach wheel for imported parameter max. rpm
-m_omega = m_rpm/60*2*pi;
+m_omega = halbach_wheel_parameters.m_rpm/60*2*pi;
 
 
 %% Initialize arrays
@@ -65,7 +65,7 @@ phase = 1; % We start in the acceleration phase
 for i = 2:length(time) % Start at i = 2 because values are all init at 1
     %% Phase transitions
     % If we have exceeded the max. RPM we cap the RPM and recalculate
-    if (omega(i-1) * 60 / (2*pi)) > m_rpm
+    if (omega(i-1) * 60 / (2*pi)) > halbach_wheel_parameters.m_rpm
         phase = 3; % Max RPM
         
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
