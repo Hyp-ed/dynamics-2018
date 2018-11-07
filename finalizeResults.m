@@ -23,21 +23,21 @@ function [ result ] = finalizeResults(max,t,d,v,a,rpm,torque,f_thrust_wheel,f_la
 %                  HypED, 03/11/2018
 % Modified:        -
 
-% Create result structure while truncating each array up to 'max'
-result = struct;
-result.time = t(1:max);
-result.velocity = v(1:max);
-result.acceleration = a(1:max);
-result.distance = d(1:max);
-result.rpm = rpm(1:max);
-result.torque = torque(1:max);
-result.wheel_thrust = f_thrust_wheel(1:max);
-result.wheel_lat = f_lat_wheel(1:max);
-result.pod_x = f_x_pod(1:max);
-result.pod_y = f_y_pod(1:max);
-result.power = power(1:max);
-result.efficiency = eff(1:max);
-result.slips = slips(1:max);
+    % Create result structure while truncating each array up to 'max'
+    result = struct;
+    result.time = t(1:max);
+    result.velocity = v(1:max);
+    result.acceleration = a(1:max);
+    result.distance = d(1:max);
+    result.rpm = rpm(1:max);
+    result.torque = torque(1:max);
+    result.wheel_thrust = f_thrust_wheel(1:max);
+    result.wheel_lat = f_lat_wheel(1:max);
+    result.pod_x = f_x_pod(1:max);
+    result.pod_y = f_y_pod(1:max);
+    result.power = power(1:max);
+    result.efficiency = eff(1:max);
+    result.slips = slips(1:max);
 
 
 end

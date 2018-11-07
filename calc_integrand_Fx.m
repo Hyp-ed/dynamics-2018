@@ -23,7 +23,7 @@ function FxInt = calc_integrand_Fx( xi, omegae, C, Input )
     g = Input.g;
     ro = Input.ro;
     mu0 = Input.mu0;
-    width = Input.w;
+    % width = Input.w;
     sigma_ = Input.sigma_;
     vt = Input.vt;
     P = Input.P;
@@ -36,10 +36,10 @@ function FxInt = calc_integrand_Fx( xi, omegae, C, Input )
     T = ((r+xi).*exp(r.*y) + (r-xi).*exp(-r.*y))./denominator;
     dT = r.*((r+xi).*exp(r.*y)-(r-xi).*exp(-r.*y))./denominator;
 
-%     % Source field (an estimation for pole pair = 4)
-%     Bxy = pi./6.*C.*xi.^4.*exp(-xi.*(g+ro)).*heaviside(xi); % Bxy field (56)
-%     Bx = dT.*Bxy;
-%     By = -1i.*xi.*T.*Bxy;
+    % Source field (an estimation for pole pair = 4)
+    % Bxy = pi./6.*C.*xi.^4.*exp(-xi.*(g+ro)).*heaviside(xi); % Bxy field (56)
+    % Bx = dT.*Bxy;
+    % By = -1i.*xi.*T.*Bxy;
     
     % at y = b (for arbitrary number of pole pairs)
     Bsx = ((-1i).^P).*(2/factorial(P)).*C.*pi.*(xi.^P).*exp(-xi.*(g+ro)).*heaviside(xi);
@@ -50,8 +50,6 @@ function FxInt = calc_integrand_Fx( xi, omegae, C, Input )
     % Integrands
     k = 1./(4.*pi.*mu0);
 
-    % Uncomment to select units
-%     FxInt = k.*real(conj(Bx).*By).*width; % (N)
     FxInt = k.*real(conj(Bx).*By); % (N/m)
     
 end

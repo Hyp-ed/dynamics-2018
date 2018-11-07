@@ -8,11 +8,11 @@ function fy = fy(slip,vt,parameters)
 % Output:
 %   fy          Lateral force
 
-% Write slip and current speed into paramteres structure
-parameters.s = slip;
-parameters.vt = vt; 
+    % Write slip and current speed into paramteres structure
+    parameters.s = slip;
+    parameters.vt = vt; 
 
-% Calculate lateral force
-fy = calc_Final(parameters, [0 1 0]);
+    % Calculate lateral force
+    fy = calc_Final(parameters, [0 1 0]);
 
 end

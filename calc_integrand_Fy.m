@@ -1,5 +1,5 @@
 function FyInt = calc_integrand_Fy( xi, omegae, C, Input )
-% CALC_INTEGRAND_FY  Computes integrand from the lift force equation (36).
+% CALC_INTEGRAND_FY  Computes integrand from the lateral force equation (36).
 % Inputs:
 %   xi      Fourier transform variable
 %   omegae  Electrical angular velocity, see calc_omega.m
@@ -7,7 +7,7 @@ function FyInt = calc_integrand_Fy( xi, omegae, C, Input )
 %   Input   Struct array containing Halbach wheel parameters
 %           See 'importHalbachWheelParameters.m'
 % Output:
-%   FyInt   Integrand of the lift force from equation (36), units N/m.
+%   FyInt   Integrand of the lateral force from equation (36), units N/m.
 % Equations from paper:
 %           Nirmal Paudel and Jonathan Z. Bird, 'General 2-D Steady-State 
 %           Force and Power Equations for a Traveling Time-Varying Magnetic 
@@ -21,7 +21,7 @@ function FyInt = calc_integrand_Fy( xi, omegae, C, Input )
     g = Input.g;
     ro = Input.ro;
     mu0 = Input.mu0;
-    width = Input.w;
+    % width = Input.w;
     sigma_ = Input.sigma_;
     vt = Input.vt;  
     P = Input.P;
@@ -34,10 +34,10 @@ function FyInt = calc_integrand_Fy( xi, omegae, C, Input )
     T = ((r+xi).*exp(r.*y) + (r-xi).*exp(-r.*y))./denominator;
     dT = r.*((r+xi).*exp(r.*y)-(r-xi).*exp(-r.*y))./denominator;
 
-%     % Source field (an estimation for pole pair = 4)
-%     Bxy = pi./6.*C.*xi.^4.*exp(-xi.*(g+ro)).*heaviside(xi); % Bxy field (56)
-%     Bx = dT.*Bxy;
-%     By = -1i.*xi.*T.*Bxy;
+    % Source field (an estimation for pole pair = 4)
+    % Bxy = pi./6.*C.*xi.^4.*exp(-xi.*(g+ro)).*heaviside(xi); % Bxy field (56)
+    % Bx = dT.*Bxy;
+    % By = -1i.*xi.*T.*Bxy;
 
     % at y = b (for arbitrary number of pole pairs)
     Bsx = ((-1i).^P).*(2/factorial(P)).*C.*pi.*(xi.^P).*exp(-xi.*(g+ro)).*heaviside(xi);
@@ -51,7 +51,6 @@ function FyInt = calc_integrand_Fy( xi, omegae, C, Input )
     % Uncomment to select units
     % Positive FyInt gives force acting along the top of the plate
     % Add a negative sign s.t. force is acting on the wheel
-%     FyInt = -0.5.*k.*real(conj(By).*By-conj(Bx).*Bx).*width; % (N)
     FyInt = -0.5.*k.*real(conj(By).*By-conj(Bx).*Bx); % (N/m)
     
 end

@@ -9,13 +9,8 @@
 
 clear; clc;
 
-
-%% TODO: 
-% - Fix halbach array parameters (rewrite excel functions in matlab)
+%% TODO:
 % - Bisection for breaking distance calculation 
-% - Comment everything!
-% - Move three phases into single function that gets executed conditionally
-% - Remove levitation ski forces
 
 %% Define parameters
 % Define basic parameters
@@ -94,6 +89,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     end
 end
 
+
 %% Print some results
 % Find max. speed and x force
 v_max = max(result.velocity);
@@ -107,5 +103,4 @@ fprintf('\nMaximum net x-force: %.2f N\n', f_x_max);
 
 %% Plot the trajectory graphs
 plotTrajectory(result.time,result.distance,result.velocity);
-
 

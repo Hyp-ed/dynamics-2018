@@ -1,15 +1,15 @@
 function [ varargout ] = calc_Final(parameters, whichValues)
-% CALC_FINAL    Calculates the final values for the thrust and lift forces,
+% CALC_FINAL    Calculates the final values for the thrust and lateral forces,
 %               and the power loss ratio
 % Inputs:        
 %   parameters  Struct array containing all the necessary parameters. 
 %               See 'importHalbachWheelParameters.m'
 %   whichValues Array which tells the function which values to compute, so
 %               that calc_Final can be used to calculate just the driving
-%               force, lift force and power loss if necessary. Its default
+%               force, lateral force and power loss if necessary. Its default
 %               value is set to [1 1 1], i.e., all results are computed.
 % Outputs:
-%   varargout   Forces computed are driving force (Fx), lift force (Fy) and
+%   varargout   Forces computed are driving force (Fx), lateral force (Fy) and
 %               power loss (PLoss). Depending on the values in whichValues,
 %               either of the above can be returned through varargout.
 % Author:

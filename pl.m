@@ -8,12 +8,12 @@ function pl = pl(slip,vt,parameters)
 % Output:
 %   pl          Power loss
 
-% Write slip and current speed into paramteres structure
-parameters.s = slip;
-parameters.vt = vt;
+    % Write slip and current speed into paramteres structure
+    parameters.s = slip;
+    parameters.vt = vt;
 
-% Calculate power loss
-pl = calc_Final(parameters,[0 0 1]);
+    % Calculate power loss
+    pl = calc_Final(parameters,[0 0 1]);
 
 end
 
