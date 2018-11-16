@@ -1,4 +1,4 @@
-function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters)
+function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters)
 % CALC_MAIN Calculates trajectory values at each point in time.
 % calc_main gets called at each iteration and handles the phases of the 
 % trajectory via a passed phase input argument (first).
@@ -27,7 +27,6 @@ function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_
             omega(i) = halbach_wheel_parameters.m_omega;
             slips(i) = omega(i)*halbach_wheel_parameters.ro - v(i-1);
             f_thrust_wheel(i) = fx(slips(i), v(i-1), halbach_wheel_parameters);
-
     end
 
     % Cap angular velocity if the angular acceleration is too big (assume linear increase)
@@ -58,11 +57,12 @@ function [v,a,distance,omega,torque,power,efficiency,slips,f_thrust_wheel,f_lat_
     distance(i) = distance(i-1)+dt*v(i);
 
     % Calculate torque, power and efficiency
-    torque(i) = halbach_wheel_parameters.ro*f_thrust_wheel(i)/n_wheel;
-    power(i) = f_thrust_wheel(i)*v(i); % power output = force * velocity
-    power_loss = halbach_wheel_parameters.w*n_wheel*pl(slips(i), v(i), halbach_wheel_parameters);
-    power_input = f_thrust_wheel(i)*v(i)+power_loss; % ignoring inertia
-    efficiency(i) = power(i)/power_input;
+    torque(i) = halbach_wheel_parameters.ro*halbach_wheel_parameters.w*f_thrust_wheel(i);
+    torque_lat(i) = halbach_wheel_parameters.ro*halbach_wheel_parameters.w*f_lat_wheel(i);
+    power(i) = n_wheel*f_thrust_wheel(i)*v(i); % power output = force * velocity
+    power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i), halbach_wheel_parameters);
+    power_input(i) = power(i)+power_loss(i); % ignoring inertia
+    efficiency(i) = power(i)/power_input(i);
 
 end
 

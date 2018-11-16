@@ -1,4 +1,4 @@
-function [ result ] = finalizeResults(max,t,d,v,a,rpm,torque,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,power,eff,slips)
+function [ result ] = finalizeResults(max,t,d,v,a,rpm,torque,torque_lat,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,power,power_loss,power_input,eff,slips)
 % finalizeResults  Truncates trajectory arrays and creates a results structure
 % Inputs:
 %   max            Last used index in result arrays 
@@ -31,11 +31,14 @@ function [ result ] = finalizeResults(max,t,d,v,a,rpm,torque,f_thrust_wheel,f_la
     result.distance = d(1:max);
     result.rpm = rpm(1:max);
     result.torque = torque(1:max);
+    result.torque_lat = torque_lat(1:max);
     result.wheel_thrust = f_thrust_wheel(1:max);
     result.wheel_lat = f_lat_wheel(1:max);
     result.pod_x = f_x_pod(1:max);
     result.pod_y = f_y_pod(1:max);
     result.power = power(1:max);
+    result.power_loss = power_loss(1:max);
+    result.power_input = power_input(1:max);
     result.efficiency = eff(1:max);
     result.slips = slips(1:max);
 

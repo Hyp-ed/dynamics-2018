@@ -31,7 +31,7 @@ function [ varargout ] = calc_Final(parameters, whichValues)
         varargout{k} = Fx;
         k=k+1;
     end
-
+    
     if whichValues(2) == 1
         Fy = quadgk(@(xi)calc_integrand_Fy(xi, omegae, C, parameters), -250, 250);
         varargout{k} = Fy;
