@@ -1,4 +1,4 @@
-function plotTrajectory(time,distance,velocity)
+function plotTrajectory(time,distance,velocity,power_input,rpm)
 % plotTrajectory   Plots the trajectory graphs from distance and velocity arrays over time
 %                  And saves them to 'TrajectoryPlot.fig'
 % Inputs:
@@ -26,12 +26,16 @@ function plotTrajectory(time,distance,velocity)
 
     % Create the plots and save them to 'TrajectoryPlot.fig'
     figure('position',[x y plotWidth plotHeight]);
-    ax1 = subplot(1,3,1);
-    plot(ax1, time, distance); axis tight; ylim([0 1750]); title('Displacement vs Time'); ylabel('Displacement(m)'); xlabel('Time(s)');
-    ax2 = subplot(1,3,2);
+    ax1 = subplot(1,5,1);
+    plot(ax1, time, distance); axis tight; ylim([0 1400]); title('Displacement vs Time'); ylabel('Displacement(m)'); xlabel('Time(s)');
+    ax2 = subplot(1,5,2);
     plot(ax2, time, velocity); axis tight; ylim([0 95]); title('Velocity vs Time'); ylabel('Velocity(m/s)'); xlabel('Time(s)');
-    ax3 = subplot(1,3,3);
+    ax3 = subplot(1,5,3);
     plot(ax3, distance, velocity); axis tight; ylim([0 95]); title('Velocity vs Displacement'); ylabel('Velocity(m/s)'); xlabel('Displacement(m)');
+    ax4 = subplot(1,5,4);
+    plot(ax4, time, power_input); axis tight; ylim([-150000 250000]); title('Power input vs Time'); ylabel('Power input(W)'); xlabel('Time(s)');
+    ax5 = subplot(1,5,5);
+    plot(ax5, rpm, power_input); axis tight; ylim([-150000 250000]); title('Power input vs RPM'); ylabel('Power input(W)'); xlabel('Time(s)');    
     savefig('TrajectoryPlot');
 end
 

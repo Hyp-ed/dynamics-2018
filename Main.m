@@ -114,5 +114,5 @@ fprintf('\nMinimum thrust torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
 
 %% Plot the trajectory graphs
-plotTrajectory(result.time,result.distance,result.velocity);
+plotTrajectory(result.time,result.distance,result.velocity,result.power_input,result.rpm);
 

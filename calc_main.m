@@ -59,7 +59,7 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
     % Calculate torque, power and efficiency
     torque(i) = halbach_wheel_parameters.ro*halbach_wheel_parameters.w*f_thrust_wheel(i);
     torque_lat(i) = halbach_wheel_parameters.ro*halbach_wheel_parameters.w*f_lat_wheel(i);
-    power(i) = n_wheel*f_thrust_wheel(i)*v(i); % power output = force * velocity
+    power(i) = f_x_pod(i)*v(i); % power output = force * velocity
     power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i), halbach_wheel_parameters);
     power_input(i) = power(i)+power_loss(i); % ignoring inertia
     efficiency(i) = power(i)/power_input(i);
