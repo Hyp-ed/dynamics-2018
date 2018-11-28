@@ -16,8 +16,8 @@ clear; clc;
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 6;        % Number of wheels
-distance_max = 440; % Experimentally found value for maximum distance of accelertaion phase
+n_wheel = 1;        % Number of wheels
+distance_max = 616; % Experimentally found value for maximum distance of accelertaion phase
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
@@ -100,6 +100,7 @@ end
 v_max = max(result.velocity);
 v_max_time = find(result.velocity == v_max) * dt - dt;
 f_x_max = max(result.pod_x);
+f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
 torque_min = min(result.torque);
 torque_lat_max = max(result.torque_lat);
@@ -108,9 +109,10 @@ fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
-fprintf('\nMaximum net x-force: %.2f N\n', f_x_max);
+fprintf('\nMaximum net thrust force: %.2f N\n', f_x_max);
+fprintf('\nMaximum net braking force: %.2f N\n', f_x_min);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
-fprintf('\nMinimum thrust torque: %.2f Nm\n', torque_min);
+fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
 
 %% Plot the trajectory graphs
