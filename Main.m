@@ -16,8 +16,8 @@ clear; clc;
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 1;        % Number of wheels
-distance_max = 616; % Experimentally found value for maximum distance of accelertaion phase
+n_wheel = 6;        % Number of wheels
+distance_max = 441; % Experimentally found value for maximum distance of accelertaion phase
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
