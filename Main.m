@@ -17,7 +17,7 @@ clear; clc;
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
 n_wheel = 6;        % Number of wheels
-distance_max = 600; % Experimentally found value for maximum distance of accelertaion phase
+distance_max = 440; % Experimentally found value for maximum distance of accelertaion phase
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
@@ -114,5 +114,5 @@ fprintf('\nMinimum thrust torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
 
 %% Plot the trajectory graphs
-plotTrajectory(result.time,result.distance,result.velocity,result.power_input,result.rpm);
+plotTrajectory(result.time,result.distance,result.velocity,result.power_input,result.rpm,result.torque);
 
