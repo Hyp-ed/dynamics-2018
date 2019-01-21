@@ -14,14 +14,18 @@ clear; clc;
 
 %% Define parameters
 % Define basic parameters
+    %halbach_wheel_parameters.ro = j;
+    %halbach_wheel_parameters.ri = halbach_wheel_parameters.ro - 0.035;
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 1;        % Number of wheels
-distance_max = 550; % Experimentally found value for maximum distance of accelertaion phase
+n_wheel = 6;        % Number of wheels
+distance_max = 900; % Experimentally found value for maximum distance of accelertaion phase
+deceleration_total = 2.2*9.81;
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
-
+    %halbach_wheel_parameters.ro = j;
+    %halbach_wheel_parameters.ri = halbach_wheel_parameters.ro - 0.035;
 
 %% Initialize arrays
 %  Create all necessary arrays and initialize with 0s for each time step. 
@@ -65,12 +69,15 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
         [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
         calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, torque_lat, power, power_loss, power_input, efficiency, slips, ...
-                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters);
+                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     end
     
     % If we have reached the maximum allowed acceleration distance we 
     % transition to deceleration
-    if distance(i-1) >= distance_max
+    
+    braking_dist = (max(v))^2/(2*deceleration_total);
+    
+    if distance(i-1) >= (halbach_wheel_parameters.l - braking_dist)
         phase = 2; % Deceleration
     end
     
@@ -79,7 +86,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Calculate for current time = i
     [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
     calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, power, power_loss, power_input, efficiency, slips, ...
-              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters);
+              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     
     fprintf("%.2f m, %.2f m/s\n", distance(i), v(i))
     
@@ -87,8 +94,8 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Stop when speed is 0m/s or time is up
     if v(i) <= 0 || i == length(time)
         % Truncate arrays and create final result structure 
-        result = finalizeResults(i, time, distance, v, a, (omega * 60 / (2*pi)), torque, torque_lat, f_thrust_wheel, f_lat_wheel,...
-                                 f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips, omega);
+        result = finalizeResults(i, time, distance, v, a, omega * 60 / (2*pi), torque, torque_lat, f_thrust_wheel, f_lat_wheel,...
+                                 f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips);
         % Break from loop
         break;
     end
@@ -100,7 +107,6 @@ end
 v_max = max(result.velocity);
 v_max_time = find(result.velocity == v_max) * dt - dt;
 f_x_max = max(result.pod_x);
-f_x_max_time = find(result.pod_x == max(result.pod_x));
 f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
 torque_min = min(result.torque);
@@ -110,12 +116,18 @@ fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
-fprintf('\nMaximum net thrust force: %.2f N at index %i\n', f_x_max, f_x_max_time);
+fprintf('\nMaximum net thrust force per wheel: %.2f N\n', f_x_max/n_wheel);
+fprintf('\nMaximum net lateral force per wheel: %.2f N\n', max(f_y_pod)/n_wheel);
 fprintf('\nMaximum net braking force: %.2f N\n', f_x_min);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
 fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
+fprintf('\nPower per motor: %.2f Nm\n', max(power_input));
 
 %% Plot the trajectory graphs
-plotTrajectory(result.time,result.distance,result.velocity,result.power_input,result.rpm,result.torque);
-
+plotTrajectory(result);
+    figure(8);
+    plot(result.rpm, result.pod_x); axis tight; ylim([0 2000]); title('Thrust vs RPM'); ylabel('Thrust(N)'); xlabel('RPM');
+    %plot(halbach_wheel_parameters.ro, f_x_max/6, 'k.', 'MarkerSize', 10); axis tight; ylim([0 500]); title('Max Thrust Force vs Outer Radius of the wheel'); ylabel('Max Thrust Force(N)'); xlabel('Outer radius of the wheel(m)');
+    hold on
+    
