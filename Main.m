@@ -16,8 +16,8 @@ clear; clc;
 % Define basic parameters
 dt = 0.05;          % Time step (resolution)
 tmax = 60;          % Maximum allowed duration of run
-n_wheel = 6;        % Number of wheels
-distance_max = 441; % Experimentally found value for maximum distance of accelertaion phase
+n_wheel = 1;        % Number of wheels
+distance_max = 550; % Experimentally found value for maximum distance of accelertaion phase
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
@@ -87,8 +87,8 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Stop when speed is 0m/s or time is up
     if v(i) <= 0 || i == length(time)
         % Truncate arrays and create final result structure 
-        result = finalizeResults(i, time, distance, v, a, omega * 60 / (2*pi), torque, torque_lat, f_thrust_wheel, f_lat_wheel,...
-                                 f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips);
+        result = finalizeResults(i, time, distance, v, a, (omega * 60 / (2*pi)), torque, torque_lat, f_thrust_wheel, f_lat_wheel,...
+                                 f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips, omega);
         % Break from loop
         break;
     end
@@ -100,6 +100,7 @@ end
 v_max = max(result.velocity);
 v_max_time = find(result.velocity == v_max) * dt - dt;
 f_x_max = max(result.pod_x);
+f_x_max_time = find(result.pod_x == max(result.pod_x));
 f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
 torque_min = min(result.torque);
@@ -109,7 +110,7 @@ fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
-fprintf('\nMaximum net thrust force: %.2f N\n', f_x_max);
+fprintf('\nMaximum net thrust force: %.2f N at index %i\n', f_x_max, f_x_max_time);
 fprintf('\nMaximum net braking force: %.2f N\n', f_x_min);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
 fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
