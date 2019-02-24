@@ -16,17 +16,20 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
             
             % Calculate angular velocity of Halbach wheels
             omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro; 
-        case 2 % Deceleration
-            % Find minimum (max. negative) slip and corresponding braking force by minimizing the driving force.
-            %[slips(i), f_thrust_wheel(i)] = fminbnd(@(x) fx(x,v(i-1),halbach_wheel_parameters),-50,0);    
-            
-            % Calculate angular velocity of Halbach wheels
-            %omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
+        case 2 % Deceleration (Two options)
+            %% DECELERATION USING HALBACH WHEELS
             %{
+            % Find minimum (max. negative) slip and corresponding braking force by minimizing the driving force.
+            [slips(i), f_thrust_wheel(i)] = fminbnd(@(x) fx(x,v(i-1),halbach_wheel_parameters),-50,0);
+            % Calculate angular velocity of Halbach wheels
+            omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
+            
             if (omega(i-1) > 0)
             omega(i) = omega(i-1) - 100 * dt;
             end
             %}
+            
+            %% DECELERATION USING EMBRAKES
             omega(i) = 0;
             f_thrust_wheel(i) = 0;
             
@@ -36,7 +39,6 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
             slips(i) = omega(i)*halbach_wheel_parameters.ro - v(i-1);
             f_thrust_wheel(i) = fx(slips(i), v(i-1), halbach_wheel_parameters);
     end
-    
     
     % Cap angular velocity if the angular acceleration is too big (assume linear increase)
     alpha = abs(omega(i)-omega(i-1))/dt; % Calculate angular acceleration in change of omega
@@ -90,11 +92,10 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
     power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i), halbach_wheel_parameters);
     power_input(i) = power(i)+power_loss(i); % ignoring inertia
     
-    % when using embrakes
+    % When using embrakes we set the power input to 0
     switch phase
         case 2
             power_input(i) = 0;
-            %power_input(i) = - a_embrakes * halbach_wheel_parameters.M * v(i) ./ 3.35;
     end
             
     efficiency(i) = power(i)/power_input(i);

@@ -1,31 +1,26 @@
 %% Pod Trajectory Simulation, HypED 2018/19
-% This script calculates the trajectory of the pod inside the tube.
-% In this script the pod accelerates and decelerates by alternating 
-% driving force from the Halbach Wheels.
-% In this script, a linear increase/decrease in rpm is assumed, and the 
-% rpm cannot exceed the max rpm given by the motor specs.
-% NOTE: inertia in power input has been ignored when in efficiency
+% This script calculates the trajectory of the pod inside the tube by
+% calculating the force from the Halbach wheel propulsion module. A linear 
+% increase/decrease in RPM is assumed (capped by a given maximum angular
+% acceleration), and the rpm cannot exceed the max RPM given by the motor 
+% specifications. Inertia in power input has been ignored when in efficiency
 % calculation.
+%
+% NOTE ABOUT TIME STEP (dt):
+% For quick estimates a time step of ~0.1s is sufficient. 
+% For more accurate results use a time step of 0.05s or smaller.
 
 clear; clc;
 
-%% TODO:
-%  - Bisection for breaking distance calculation 
-
 %% Define parameters
 % Define basic parameters
-    %halbach_wheel_parameters.ro = j;
-    %halbach_wheel_parameters.ri = halbach_wheel_parameters.ro - 0.035;
-dt = 0.05;          % Time step (resolution)
-tmax = 60;          % Maximum allowed duration of run
-n_wheel = 6;        % Number of wheels
-distance_max = 900; % Experimentally found value for maximum distance of accelertaion phase
-deceleration_total = 2.2*9.81;
+dt = 0.05;                      % Time step (see note above)
+tmax = 60;                      % Maximum allowed duration of run
+n_wheel = 6;                    % Number of wheels
+deceleration_total = 2.2*9.81;  % Braking deceleration from EmBrakes
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
-    %halbach_wheel_parameters.ro = j;
-    %halbach_wheel_parameters.ri = halbach_wheel_parameters.ro - 0.035;
 
 %% Initialize arrays
 %  Create all necessary arrays and initialize with 0s for each time step. 
@@ -81,14 +76,13 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         phase = 2; % Deceleration
     end
     
-    
     %% Main calculation
     % Calculate for current time = i
     [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
     calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, power, power_loss, power_input, efficiency, slips, ...
               f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     
-    fprintf("%.2f m, %.2f m/s\n", distance(i), v(i))
+    fprintf("%.2f ft, %.2f m, %.2f m/s, %.2f s\n", distance(i)*3.281, distance(i), v(i), time(i))
     
     %% Exit conditions
     % Stop when speed is 0m/s or time is up
@@ -118,16 +112,15 @@ fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
 fprintf('\nMaximum net thrust force per wheel: %.2f N\n', f_x_max/n_wheel);
 fprintf('\nMaximum net lateral force per wheel: %.2f N\n', max(f_y_pod)/n_wheel);
-fprintf('\nMaximum net braking force: %.2f N\n', f_x_min);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
 fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
-fprintf('\nPower per motor: %.2f Nm\n', max(power_input));
+fprintf('\nPower per motor: %.2f W\n', max(power_input)/n_wheel);
 
 %% Plot the trajectory graphs
 plotTrajectory(result);
-    figure(8);
-    plot(result.rpm, result.pod_x); axis tight; ylim([0 2000]); title('Thrust vs RPM'); ylabel('Thrust(N)'); xlabel('RPM');
-    %plot(halbach_wheel_parameters.ro, f_x_max/6, 'k.', 'MarkerSize', 10); axis tight; ylim([0 500]); title('Max Thrust Force vs Outer Radius of the wheel'); ylabel('Max Thrust Force(N)'); xlabel('Outer radius of the wheel(m)');
-    hold on
-    
+
+% Plot separate Thrust vs RPM plot
+figure(8);
+plot(result.rpm, result.pod_x); axis tight; ylim([0 2000]); title('Thrust vs RPM'); ylabel('Thrust(N)'); xlabel('RPM');
+hold on;
