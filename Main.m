@@ -14,6 +14,9 @@ clear; clc;
 
 %% Define parameters
 % Define basic parameters
+useMaxAccDistance = true;
+maxAccDistance = 1100;
+
 dt = 0.05;                      % Time step (see note above)
 tmax = 60;                      % Maximum allowed duration of run
 n_wheel = 6;                    % Number of wheels
@@ -70,10 +73,15 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % If we have reached the maximum allowed acceleration distance we 
     % transition to deceleration
     
-    braking_dist = (max(v))^2/(2*deceleration_total);
-    
-    if distance(i-1) >= (halbach_wheel_parameters.l - braking_dist)
-        phase = 2; % Deceleration
+    if (useMaxAccDistance)
+        if distance(i-1) >= (maxAccDistance)
+            phase = 2; % Deceleration
+        end
+    else
+        braking_dist = (max(v))^2/(2*deceleration_total);
+        if distance(i-1) >= (halbach_wheel_parameters.l - braking_dist)
+            phase = 2; % Deceleration
+        end
     end
     
     %% Main calculation
