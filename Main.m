@@ -14,7 +14,7 @@ clear; clc;
 
 %% Define parameters
 % Define basic parameters
-useMaxAccDistance = true;
+useMaxAccDistance = false;
 maxAccDistance = 1100;
 
 dt = 0.05;                      % Time step (see note above)
