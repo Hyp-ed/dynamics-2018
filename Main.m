@@ -38,6 +38,7 @@ distance = zeros(1,length(time));       % Distance travelled
 omega = zeros(1,length(time));          % Angular velocity of Halbach wheels
 torque = zeros(1,length(time));         % Torque on Halbach wheels
 torque_lat = zeros(1,length(time));     % Torque on Halbach wheels from lateral forces
+torque_motor = zeros(1,length(time));   % Torque from motor
 power = zeros(1,length(time));          % Power
 power_loss = zeros(1,length(time));     % Power loss
 power_input = zeros(1,length(time));    % Power input
@@ -69,8 +70,8 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         phase = 3; % Max RPM
         
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
-        [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-        calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, torque_lat, power, power_loss, power_input, efficiency, slips, ...
+        [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
+        calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
                   f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     end
     
@@ -89,8 +90,8 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     
     %% Main calculation
     % Calculate for current time = i
-    [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-    calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, power, power_loss, power_input, efficiency, slips, ...
+    [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
+    calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
               f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     
     fprintf("%.2f ft, %.2f m, %.2f m/s, %.2f s\n", distance(i) * 3.281, distance(i), v(i), time(i))
@@ -105,7 +106,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Stop when speed is 0m/s or time is up
     if v(i) <= 0 || i == length(time)
         % Truncate arrays and create final result structure 
-        result = finalizeResults(i, time, distance, v, a, omega * 60 / (2 * pi), torque, torque_lat, f_thrust_wheel, f_lat_wheel,...
+        result = finalizeResults(i, time, distance, v, a, omega * 60 / (2 * pi), torque, torque_lat, torque_motor, f_thrust_wheel, f_lat_wheel,...
                                  f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips);
         % Break from loop
         break;
@@ -138,8 +139,3 @@ fprintf('\nPower per motor: %.2f W\n', max(power_input)/n_wheel);
 
 %% Plot the trajectory graphs
 plotTrajectory(result);
-
-% Plot separate Thrust vs RPM plot
-figure(8);
-plot(result.rpm, result.pod_x); axis tight; ylim([0 2000]); title('Thrust vs RPM'); ylabel('Thrust(N)'); xlabel('RPM');
-hold on;

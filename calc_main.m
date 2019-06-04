@@ -1,4 +1,4 @@
-function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters, a_embrakes)
+function [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters, a_embrakes)
 % CALC_MAIN Calculates trajectory values at each point in time.
 % calc_main gets called at each iteration and handles the phases of the 
 % trajectory via a passed phase input argument (first).
@@ -81,10 +81,14 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
     power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i), halbach_wheel_parameters);
     power_input(i) = power(i)+power_loss(i); % ignoring inertia
     
-    % When using embrakes we set the power input to 0
+    % Calculate motor torque
+    torque_motor(i) = (f_thrust_wheel(i)*halbach_wheel_parameters.w*v(i)+power_loss(i)/n_wheel)/omega(i);
+    
+    % When using embrakes we set the power input and motor torque to 0
     switch phase
         case 2
             power_input(i) = 0;
+            torque_motor(i) = 0;
     end
             
     efficiency(i) = power(i)/power_input(i);
