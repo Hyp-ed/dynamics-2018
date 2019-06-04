@@ -21,7 +21,7 @@ function [ Parameter ] = importHalbachWheelParameters()
     Constants = importSpreadsheet(params_filepath, 'Constants', 3:8,  3, 3:8,  4);
     Variables = importSpreadsheet(params_filepath, 'Variables', 3:4,  3, 3:4,  4);
     Tube      = importSpreadsheet(params_filepath, 'Tube',      3:3,  3, 3:3,  4);
-    Pod       = importSpreadsheet(params_filepath, 'Pod',       3:11, 3, 3:11, 4);
+    Pod       = importSpreadsheet(params_filepath, 'Pod',       3:12, 3, 3:12, 4);
 
     % Put all variables in a single cell array and create a parameter structure
     FullArray = [Constants;Variables;Tube;Pod];                     % Create a single array with all variables

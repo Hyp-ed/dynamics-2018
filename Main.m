@@ -76,7 +76,6 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     
     % If we have reached the maximum allowed acceleration distance we 
     % transition to deceleration
-    
     if (useMaxAccDistance)
         if distance(i-1) >= (maxAccDistance)
             phase = 2; % Deceleration
@@ -118,6 +117,7 @@ end
 % Find max. speed and x force
 v_max = max(result.velocity);
 v_max_time = find(result.velocity == v_max) * dt - dt;
+rpm_max = max(result.rpm);
 f_x_max = max(result.pod_x);
 f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
@@ -128,6 +128,7 @@ fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
+fprintf('\nMaximum RPM: %i\n', rpm_max);
 fprintf('\nMaximum net thrust force per wheel: %.2f N\n', f_x_max/n_wheel);
 fprintf('\nMaximum net lateral force per wheel: %.2f N\n', max(f_y_pod)/n_wheel);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
