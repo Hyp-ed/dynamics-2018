@@ -40,17 +40,16 @@ function [v,a,distance,omega,torque,torque_lat,power,power_loss,power_input,effi
     % Cap angular velocity if the angular acceleration is too big (assume linear increase)
     alpha = abs(omega(i)-omega(i-1))/dt; % Calculate angular acceleration in change of omega
     if alpha > halbach_wheel_parameters.m_alpha
-        % Recalculate omega for max. angular acceleration
         switch phase
             case 1 % Acceleration    
                 omega(i) = omega(i-1) + halbach_wheel_parameters.m_alpha*dt;
                 f_thrust_wheel(i) = fx(slips(i), v(i-1), halbach_wheel_parameters);
+                slips(i) = halbach_wheel_parameters.ro*omega(i) - v(i-1);
             case 2 % Deceleration
                 f_thrust_wheel(i) = 0;
                 omega(i) = 0;
+                slips(i) = 0;
         end
-        % Recalculate slip and Halbach wheel thrust
-        slips(i) = halbach_wheel_parameters.ro*omega(i) - v(i-1);
     end
 
     
