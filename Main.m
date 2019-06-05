@@ -14,15 +14,15 @@ clear; clc;
 
 %% Parameters
 % Script mode
-useMaxAccDistance = false;          
-maxAccDistance = 1100;
+useMaxAccDistance = true;          
+maxAccDistance = 1050;
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
 
 % Define basic parameters
-dt = 1/20;                          % Time step (see note above)
-tmax = 60;                          % Maximum allowed duration of run
+dt = 1/120;                          % Time step (see note above)
+tmax = 40;                          % Maximum allowed duration of run
 n_wheel = 6;                        % Number of wheels
 deceleration_total = 2.2 * 9.81;    % Braking deceleration from EmBrakes
 stripe_dist = 100 / 3.281;          % Distance between stripes
@@ -94,7 +94,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
               f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
     
-    fprintf("%.2f ft, %.2f m, %.2f m/s, %.2f s\n", distance(i) * 3.281, distance(i), v(i), time(i))
+    fprintf("Step: %i, %.2f s, %.2f m, %.2f m/s, %4.0f RPM, %.2f Nm, %.2f m/s, Phase: %i\n", i, time(i), distance(i), v(i), omega(i) * 60 / (2 * pi), torque_motor(i), slips(i), phase)
     
     %% Stripes
     if (distance(i) >= (1 + stripe_count) * stripe_dist)
@@ -122,6 +122,7 @@ rpm_max = max(result.rpm);
 f_x_max = max(result.pod_x);
 f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
+torque_motor_max = max(result.torque_motor);
 torque_min = min(result.torque);
 torque_lat_max = max(result.torque_lat);
 % Let's display some stuff for quick viewing
@@ -129,10 +130,11 @@ fprintf('\n--------------------RESULTS--------------------\n');
 fprintf('\nDuration of run: %.2f s\n', time(i));
 fprintf('\nDistance: %.2f m\n', distance(i));
 fprintf('\nMaximum speed: %.2f m/s at %.2f s\n', v_max, v_max_time);
-fprintf('\nMaximum RPM: %i\n', rpm_max);
+fprintf('\nMaximum RPM: %5.0f\n', rpm_max);
 fprintf('\nMaximum net thrust force per wheel: %.2f N\n', f_x_max/n_wheel);
 fprintf('\nMaximum net lateral force per wheel: %.2f N\n', max(f_y_pod)/n_wheel);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
+fprintf('\nMaximum motor torque: %.2f Nm\n', torque_motor_max);
 fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
 fprintf('\nPower per motor: %.2f W\n', max(power_input)/n_wheel);
