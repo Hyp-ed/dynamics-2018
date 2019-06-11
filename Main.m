@@ -20,10 +20,15 @@ maxAccDistance = 1050;
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
 
+% Import lookup tables
+fx_lookup_table = load('Parameters/forceLookupTable.mat');      % Thrust force lookup table for wheel pairs
+pl_lookup_table = load('Parameters/powerLossLookupTable.mat');  % Power loss lookup table for wheel pairs
+
 % Define basic parameters
-dt = 1/120;                          % Time step (see note above)
-tmax = 40;                          % Maximum allowed duration of run
-n_wheel = 6;                        % Number of wheels
+dt = 1/20;                          % Time step (see note above)
+tmax = 120;                         % Maximum allowed duration of run
+n_wheel_pairs = 3;                  % Number of wheel pairs
+n_wheel = n_wheel_pairs * 2;        % Number of wheels
 deceleration_total = 2.2 * 9.81;    % Braking deceleration from EmBrakes
 stripe_dist = 100 / 3.281;          % Distance between stripes
 number_of_stripes = floor(halbach_wheel_parameters.l / stripe_dist); % Total number of stripes we will detect
@@ -72,7 +77,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
         [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
         calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
+                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table);
     end
     
     % If we have reached the maximum allowed acceleration distance we 
@@ -92,7 +97,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Calculate for current time = i
     [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
     calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total);
+              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table);
     
     fprintf("Step: %i, %.2f s, %.2f m, %.2f m/s, %4.0f RPM, %.2f Nm, %.2f m/s, Phase: %i\n", i, time(i), distance(i), v(i), omega(i) * 60 / (2 * pi), torque_motor(i), slips(i), phase)
     
@@ -112,7 +117,6 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         break;
     end
 end
-
 
 %% Print some results
 % Find max. speed and x force
