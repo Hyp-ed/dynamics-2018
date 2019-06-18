@@ -11,8 +11,8 @@ function plotTrajectory(result)
 % Modified:        -
 
     % Set plot size
-    plotWidth = 1000;
-    plotHeight = 600;
+    plotWidth = 1500;
+    plotHeight = 500;
 
     % Get screen resolution in pixels
     set(0,'units','pixels');            % Set screen units to pixels
@@ -26,18 +26,16 @@ function plotTrajectory(result)
 
     % Create the plots and save them to 'TrajectoryPlot.fig'
     figure('position',[x y plotWidth plotHeight]);
-    ax1 = subplot(1,6,1);
-    plot(ax1, result.time, result.distance); axis tight; ylim([0 1300]); title('Displacement vs Time'); ylabel('Displacement(m)'); xlabel('Time(s)');
-    ax2 = subplot(1,6,2);
-    plot(ax2, result.time, result.velocity); axis tight; ylim([0 95]); title('Velocity vs Time'); ylabel('Velocity(m/s)'); xlabel('Time(s)');
-    ax3 = subplot(1,6,3);
-    plot(ax3, result.time, result.power_input); axis tight; ylim([0 150000]); title('Power input vs Time'); ylabel('Power input(W)'); xlabel('Time(s)');
-    ax4 = subplot(1,6,4);
-    plot(ax4, result.rpm, result.power_input); axis tight; ylim([0 150000]); title('Power input vs RPM'); ylabel('Power input(W)'); xlabel('RPM');    
-    ax5 = subplot(1,6,5);
-    plot(ax5, result.time, result.torque); axis tight; ylim([0 50]); title('Net thrust torque vs Time'); ylabel('Net thrust torque [Nm]'); xlabel('Time [s]');    
+    ax1 = subplot(1,5,1);
+    plot(ax1, result.time, result.distance); axis tight; ylim([0 1300]); title('Displacement vs. Time'); ylabel('Displacement(m)'); xlabel('Time(s)');
+    ax2 = subplot(1,5,2);
+    plot(ax2, result.time, result.velocity); axis tight; ylim([0 90]); title('Velocity vs. Time'); ylabel('Velocity(m/s)'); xlabel('Time(s)');
+    ax3 = subplot(1,5,3);
+    plot(ax3, result.time, result.power_input); axis tight; ylim([0 1200000]); title('Power input vs. Time'); ylabel('Power input(W)'); xlabel('Time(s)');
+    ax4 = subplot(1,5,4);
+    plot(ax4, result.time, result.torque); axis tight; ylim([0 5]); title('Net torque vs. Time'); ylabel('Net thrust torque [Nm]'); xlabel('Time [s]');    
     savefig('TrajectoryPlot');
-    ax6 = subplot(1,6,6);
-    plot(ax6, result.time, result.torque_motor); axis tight; ylim([0 50]); title('Motor torque vs Time'); ylabel('Motor torque [Nm]'); xlabel('Time [s]');    
+    ax5 = subplot(1,5,5);
+    plot(ax5, result.time, result.torque_motor); axis tight; ylim([0 30]); title('Motor torque vs. Time'); ylabel('Motor torque [Nm]'); xlabel('Time [s]');    
     savefig('TrajectoryPlot');
 end

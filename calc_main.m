@@ -12,25 +12,21 @@ function [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,pow
         case 1 % Acceleration
             % Find maximum slip and corresponding driving force by minimizing the negative of the driving force
             [slips(i), f_thrust_wheel(i)] = fminbnd(@(x) -fx(x, v(i-1), fx_lookup_table),0,50);
-            f_thrust_wheel(i) = -f_thrust_wheel(i); % Change sign so that force is positive
+            f_thrust_wheel(i) = -f_thrust_wheel(i);
             
             % Calculate angular velocity of Halbach wheels
             omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
             
-            % Calculate torques
-            torque(i) = halbach_wheel_parameters.ro*f_thrust_wheel(i);
-            power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i-1), pl_lookup_table);
-            torque_motor(i) = torque(i)+(power_loss(i)/(n_wheel*omega(i)));
+            % Calculate required angular acceleration and torque
+            alpha = (omega(i)-omega(i-1))/dt;
+            torque(i) = alpha * halbach_wheel_parameters.i;
             
-            % Cap motor torque
-            if torque_motor(i) > halbach_wheel_parameters.m_torque
-                torque_motor(i) = halbach_wheel_parameters.m_torque;
-                slips(i) = fzero(@(x) ((fx(x, v(i-1), fx_lookup_table) * (x+v(i-1))) + (pl(x, v(i-1), pl_lookup_table) * halbach_wheel_parameters.w) - (torque_motor(i) * (x+v(i-1))/halbach_wheel_parameters.ro)), [1e-5, slips(i)]);
-                f_thrust_wheel(i) = fx(slips(i), v(i-1), fx_lookup_table);
-                power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i-1), pl_lookup_table);
-                omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
-                torque(i) = halbach_wheel_parameters.ro*f_thrust_wheel(i);
-            end
+            % Calculate motor torque
+            torque_motor(i) = torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro;
+            
+            % Calculate rail heating losses
+            power_loss(i) = n_wheel*pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
+            
         case 2 % Deceleration using EmBrakes
             omega(i) = 0;
             f_thrust_wheel(i) = 0;
@@ -43,9 +39,23 @@ function [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,pow
             omega(i) = halbach_wheel_parameters.m_omega;
             slips(i) = omega(i)*halbach_wheel_parameters.ro - v(i-1);
             f_thrust_wheel(i) = fx(slips(i), v(i-1), fx_lookup_table);
-            torque(i) = halbach_wheel_parameters.ro*f_thrust_wheel(i);
-            power_loss(i) = n_wheel*halbach_wheel_parameters.w*pl(slips(i), v(i-1), pl_lookup_table);
-            torque_motor(i) = torque(i)+(power_loss(i)/(n_wheel*omega(i)));
+            alpha = (omega(i)-omega(i-1))/dt;
+            torque(i) = alpha * halbach_wheel_parameters.i;
+            torque_motor(i) =  torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro;
+    end
+    
+    % Cap motor torque
+    if torque_motor(i) > halbach_wheel_parameters.m_torque
+        torque_motor(i) = halbach_wheel_parameters.m_torque;
+        
+        % Find max. achievable slip given the torque constraint
+        slips(i) = fzero(@(slip) (halbach_wheel_parameters.i * ((v(i-1)+slip)/halbach_wheel_parameters.ro - omega(i-1))/dt + fx(slip,v(i-1),fx_lookup_table)*halbach_wheel_parameters.ro - torque_motor(i)), [0, slips(i)]);
+        
+        % Recalculate dependent values
+        f_thrust_wheel(i) = fx(slips(i), v(i-1), fx_lookup_table);
+        power_loss(i) = n_wheel*pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
+        omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
+        torque(i) = torque_motor(i) - halbach_wheel_parameters.ro*f_thrust_wheel(i);
     end
     
     % Calculate total x forces
@@ -85,4 +95,3 @@ function [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,pow
     efficiency(i) = power(i)/power_input(i);
 
 end
-
