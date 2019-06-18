@@ -21,11 +21,12 @@ maxAccDistance = 1050;
 halbach_wheel_parameters = importHalbachWheelParameters();
 
 % Import lookup tables
-fx_lookup_table = load('Parameters/forceLookupTable.mat');      % Thrust force lookup table for wheel pairs
-pl_lookup_table = load('Parameters/powerLossLookupTable.mat');  % Power loss lookup table for wheel pairs
+fx_lookup_table = load('Parameters/forceLookupTable.mat');              % Thrust force lookup table (net values for a wheel pair)
+pl_lookup_table = load('Parameters/powerLossLookupTable.mat');          % Power loss lookup table (net values for a wheel pair)
+ct_lookup_table = load('Parameters/coggingTorqueLookupTable.mat');      % Interaction torque lookup table (values for a single wheel)
 
-% Define basic parameters
-dt = 1/20;                          % Time step (see note above)
+% Setup parameters
+dt = 1/60;                          % Time step (see note above)
 tmax = 120;                         % Maximum allowed duration of run
 n_wheel_pairs = 3;                  % Number of wheel pairs
 n_wheel = n_wheel_pairs * 2;        % Number of wheels
@@ -40,15 +41,16 @@ time = 0:dt:tmax;                       % Create time array with time step dt an
 v = zeros(1,length(time));              % Velocity of pod
 a = zeros(1,length(time));              % Acceleration of pod
 distance = zeros(1,length(time));       % Distance travelled
+theta = zeros(1,length(time));          % Current angle of the Halbach wheels relative to their equilibrium alignment
 omega = zeros(1,length(time));          % Angular velocity of Halbach wheels
-torque = zeros(1,length(time));         % Torque on Halbach wheels
+torque = zeros(1,length(time));         % Net torque on Halbach wheels
 torque_lat = zeros(1,length(time));     % Torque on Halbach wheels from lateral forces
-torque_motor = zeros(1,length(time));   % Torque from motor
+torque_motor = zeros(1,length(time));   % Supplied torque from motor
 power = zeros(1,length(time));          % Power
 power_loss = zeros(1,length(time));     % Power loss
 power_input = zeros(1,length(time));    % Power input
 efficiency = zeros(1,length(time));     % Power output / Power input
-slips = zeros(1,length(time));          % Slip ratio between Halbach wheels and track
+slips = zeros(1,length(time));          % Absolute slip between Halbach wheels and track
 f_thrust_wheel = zeros(1,length(time)); % Thrust force from a single Halbach wheel
 f_lat_wheel = zeros(1,length(time));    % Lateral force from a single Halbach wheel   
 f_x_pod = zeros(1,length(time));        % Net force in direction of track (x) for whole pod
@@ -75,9 +77,9 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         phase = 3; % Max RPM
         
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
-        [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-        calc_main(phase, i - 1, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table);
+        [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
+        calc_main(phase, i - 1, dt, n_wheel, v, a, distance, theta, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
+                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table);
     end
     
     % If we have reached the maximum allowed acceleration distance we 
@@ -95,9 +97,9 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     
     %% Main calculation
     % Calculate for current time = i
-    [v,a,distance,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
-    calc_main(phase, i, dt, n_wheel, v, a, distance, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table);
+    [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
+    calc_main(phase, i, dt, n_wheel, v, a, distance, theta, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
+              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table);
     
     fprintf("Step: %i, %.2f s, %.2f m, %.2f m/s, %4.0f RPM, %.2f Nm, %.2f m/s, Phase: %i\n", i, time(i), distance(i), v(i), omega(i) * 60 / (2 * pi), torque_motor(i), slips(i), phase)
     
@@ -111,7 +113,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Stop when speed is 0m/s or time is up
     if v(i) <= 0 || i == length(time)
         % Truncate arrays and create final result structure 
-        result = finalizeResults(i, time, distance, v, a, omega * 60 / (2 * pi), torque, torque_lat, torque_motor, f_thrust_wheel, f_lat_wheel,...
+        result = finalizeResults(i, time, distance, v, a, theta, omega * 60 / (2 * pi), torque, torque_lat, torque_motor, f_thrust_wheel, f_lat_wheel,...
                                  f_x_pod, f_y_pod, power, power_loss, power_input, efficiency, slips);
         % Break from loop
         break;

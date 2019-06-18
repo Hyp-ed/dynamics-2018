@@ -1,4 +1,4 @@
-function [ result ] = finalizeResults(max,t,d,v,a,rpm,torque,torque_lat,torque_motor,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,power,power_loss,power_input,eff,slips)
+function [ result ] = finalizeResults(max,t,d,v,a,theta,rpm,torque,torque_lat,torque_motor,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,power,power_loss,power_input,eff,slips)
 % finalizeResults  Truncates trajectory arrays and creates a results structure
 % Inputs:
 %   max            Last used index in result arrays 
