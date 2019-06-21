@@ -1,5 +1,5 @@
-function fy = fy(slip,vt,parameters)
-% FY            Calculates lateral force as a function of slip and velocity
+function fy = calc_fy(slip,vt,parameters)
+% CALC_FY       Calculates lateral force as a function of slip and velocity
 % Inputs:
 %   slip        Slip ratio
 %   vt          Translational Velocity

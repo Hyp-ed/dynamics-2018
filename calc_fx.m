@@ -1,5 +1,5 @@
-function fx = fx(slip,vt,fx_lookup_table)
-% FX            Calculates thrust force as a function of slip and velocity by bilinearly interpolating a thrust force lookup table
+function fx = calc_fx(slip,vt,fx_lookup_table)
+% CALC_FX           Calculates thrust force as a function of slip and velocity by bilinearly interpolating a thrust force lookup table
 % Inputs:
 %   slip            Absolute slip
 %   vt              Translational Velocity
@@ -22,5 +22,6 @@ function fx = fx(slip,vt,fx_lookup_table)
     fx2 = (i_s_max - i_s) / (i_s_max - i_s_min) * fx_lookup_table.forces(i_v_max, i_s_min) + (i_s - i_s_min) / (i_s_max - i_s_min) * fx_lookup_table.forces(i_v_max, i_s_max); % Interpolate along x-axis for y2
     fx = (i_v_max - i_v) / (i_v_max - i_v_min) * fx1 + (i_v - i_v_min) / (i_v_max - i_v_min) * fx2; % Interpolate along y-axis between (x, y1) and (x, y2)
     fx = fx / 2; % Divide by two since the lookup table is for wheel pairs
+    fx = fx;
     
 end

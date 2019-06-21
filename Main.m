@@ -15,18 +15,19 @@ clear; clc;
 %% Parameters
 % Script mode
 useMaxAccDistance = true;          
-maxAccDistance = 1050;
+maxAccDistance = 1000;
 
 % Import parameters from './Parameters/HalbachWheel_parameters.xlsx'
 halbach_wheel_parameters = importHalbachWheelParameters();
 
-% Import lookup tables
+% Import lookup tables and optimal slip coefficients
 fx_lookup_table = load('Parameters/forceLookupTable.mat');              % Thrust force lookup table (net values for a wheel pair)
 pl_lookup_table = load('Parameters/powerLossLookupTable.mat');          % Power loss lookup table (net values for a wheel pair)
 ct_lookup_table = load('Parameters/coggingTorqueLookupTable.mat');      % Interaction torque lookup table (values for a single wheel)
+os_coefficients = load('Parameters/optimalSlipCoefficients.mat');       % Optimal slip coefficients
 
 % Setup parameters
-dt = 1/60;                          % Time step (see note above)
+dt = 1/1000;                         % Time step (see note above)
 tmax = 120;                         % Maximum allowed duration of run
 n_wheel_pairs = 3;                  % Number of wheel pairs
 n_wheel = n_wheel_pairs * 2;        % Number of wheels
@@ -79,7 +80,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
         % Recalculate previous time = i - 1 to avoid briefly surpassing max RPM
         [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
         calc_main(phase, i - 1, dt, n_wheel, v, a, distance, theta, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table);
+                  f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table, os_coefficients);
     end
     
     % If we have reached the maximum allowed acceleration distance we 
@@ -99,7 +100,7 @@ for i = 2:length(time) % Start at i = 2 because values are all init at 1
     % Calculate for current time = i
     [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = ...
     calc_main(phase, i, dt, n_wheel, v, a, distance, theta, omega, torque, torque_lat, torque_motor, power, power_loss, power_input, efficiency, slips, ...
-              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table);
+              f_thrust_wheel, f_lat_wheel, f_x_pod, f_y_pod, halbach_wheel_parameters, deceleration_total, fx_lookup_table, pl_lookup_table, ct_lookup_table, os_coefficients);
     
     fprintf("Step: %i, %.2f s, %.2f m, %.2f m/s, %4.0f RPM, %.2f Nm, %.2f m/s, Phase: %i\n", i, time(i), distance(i), v(i), omega(i) * 60 / (2 * pi), torque_motor(i), slips(i), phase)
     
@@ -129,7 +130,6 @@ f_x_max = max(result.pod_x);
 f_x_min = min(result.pod_x);
 torque_max = max(result.torque);
 torque_motor_max = max(result.torque_motor);
-torque_min = min(result.torque);
 torque_lat_max = max(result.torque_lat);
 % Let's display some stuff for quick viewing
 fprintf('\n--------------------RESULTS--------------------\n');
@@ -141,7 +141,6 @@ fprintf('\nMaximum net thrust force per wheel: %.2f N\n', f_x_max/n_wheel);
 fprintf('\nMaximum net lateral force per wheel: %.2f N\n', max(f_y_pod)/n_wheel);
 fprintf('\nMaximum thrust torque: %.2f Nm\n', torque_max);
 fprintf('\nMaximum motor torque: %.2f Nm\n', torque_motor_max);
-fprintf('\nMaximum braking torque: %.2f Nm\n', torque_min);
 fprintf('\nMaximum lateral torque: %.2f Nm\n', torque_lat_max);
 fprintf('\nPower per motor: %.2f W\n', max(power_input)/n_wheel);
 
