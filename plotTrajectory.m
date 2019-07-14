@@ -33,7 +33,7 @@ function plotTrajectory(result)
     ax3 = subplot(1,5,3);
     plot(ax3, result.time, result.power_input); axis tight; ylim([0 1400000]); title('Power input vs. Time'); ylabel('Power input(W)'); xlabel('Time(s)');
     ax4 = subplot(1,5,4);
-    plot(ax4, result.time, result.torque); axis tight; ylim([0 5]); title('Net torque vs. Time'); ylabel('Net thrust torque [Nm]'); xlabel('Time [s]');    
+    plot(ax4, result.time, result.torque); axis tight; ylim([-10 10]); title('Net torque vs. Time'); ylabel('Net thrust torque [Nm]'); xlabel('Time [s]');    
     savefig('TrajectoryPlot');
     ax5 = subplot(1,5,5);
     plot(ax5, result.time, result.torque_motor); axis tight; ylim([0 30]); title('Motor torque vs. Time'); ylabel('Motor torque [Nm]'); xlabel('Time [s]');    

@@ -1,4 +1,4 @@
-function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters,a_embrakes,fx_lookup_table,pl_lookup_table,ct_lookup_table,os_coefficients)
+function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod] = calc_main(phase,i,dt,n_wheel,n_brake,v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_loss,power_input,efficiency,slips,f_thrust_wheel,f_lat_wheel,f_x_pod,f_y_pod,halbach_wheel_parameters,braking_force,fx_lookup_table,pl_lookup_table,ct_lookup_table,os_coefficients)
 % CALC_MAIN Calculates trajectory values at each point in time.
 % calc_main gets called at each iteration and handles the phases of the 
 % trajectory via a passed phase input argument.
@@ -6,13 +6,11 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
 % phase = 2 -- Deceleration
 % phase = 3 -- Max RPM
 % @author      Andreas Malekos, Rafael Anderka
-
+    
     % Calculate slip, Halbach wheel thrust force, torque and angular velocity
     switch phase
         case 1 % Acceleration
             % Find optimal slip and corresponding driving force
-            %[slips(i), f_thrust_wheel(i)] = fminbnd(@(s) -calc_fx(s, v(i-1), fx_lookup_table),0,50);
-            %f_thrust_wheel(i) = -f_thrust_wheel(i);
             slips(i) = calc_optimalSlip(v(i-1), os_coefficients);
             f_thrust_wheel(i) = calc_fx(slips(i), v(i-1), fx_lookup_table);
             
@@ -28,16 +26,21 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
             power_loss(i) = n_wheel*calc_pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
             
             % Calculate motor torque
-            torque_motor(i) = torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro + power_loss(i) * omega(i);
+            %torque_motor(i) = torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro + power_loss(i)/n_wheel * omega(i);
+            torque_motor(i) = torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro;
             
         case 2 % Deceleration using EmBrakes
-            omega(i) = 0;
-            theta(i) = theta(i-1);
-            f_thrust_wheel(i) = 0;
-            slips(i) = 0;
-            power_loss(i) = 0;
-            torque(i) = 0;
+            % Find steady state slip based on constraints from equations of motion assuming no external motor torque
+            slips(i) = fzero(@(s) (s + v(i-1) + (n_wheel*calc_fx(s,v(i-1),fx_lookup_table) - n_brake*braking_force)/halbach_wheel_parameters.M*dt)/halbach_wheel_parameters.ro - omega(i-1) + calc_fx(s,v(i-1),fx_lookup_table)*halbach_wheel_parameters.ro/halbach_wheel_parameters.i*dt,[slips(i-1)-1,slips(i-1)+1]);
+            
+            f_thrust_wheel(i) = calc_fx(slips(i), v(i-1), fx_lookup_table);
+            omega(i) = omega(i-1) - f_thrust_wheel(i) * halbach_wheel_parameters.ro / halbach_wheel_parameters.i * dt;
+            theta(i) = theta(i-1) + omega(i) * dt;
+            power_loss(i) = n_wheel*calc_pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
+            alpha = (omega(i)-omega(i-1))/dt;
+            torque(i) = alpha * halbach_wheel_parameters.i;
             torque_motor(i) = 0;
+            
         case 3 % Max RPM
             % Set omega to max. omega
             omega(i) = halbach_wheel_parameters.m_omega;
@@ -46,6 +49,7 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
             f_thrust_wheel(i) = calc_fx(slips(i), v(i-1), fx_lookup_table);
             alpha = (omega(i)-omega(i-1))/dt;
             torque(i) = alpha * halbach_wheel_parameters.i;
+            %torque_motor(i) =  torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro + power_loss(i)/n_wheel * omega(i);
             torque_motor(i) =  torque(i) + f_thrust_wheel(i) * halbach_wheel_parameters.ro;
             power_loss(i) = n_wheel*calc_pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
     end
@@ -55,18 +59,22 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
         torque_motor(i) = halbach_wheel_parameters.m_torque;
         
         % Find max. achievable slip given the torque constraint
-        slips(i) = fzero(@(slip) (halbach_wheel_parameters.i * ((v(i-1)+slip)/halbach_wheel_parameters.ro - omega(i-1))/dt + calc_fx(slip,v(i-1),fx_lookup_table)*halbach_wheel_parameters.ro - torque_motor(i)), [max(slips(i-1) - 1, 0), slips(i)]);
-        
+        %slips(i) = fzero(@(slip) (halbach_wheel_parameters.i * ((v(i-1)+slip)/halbach_wheel_parameters.ro - omega(i-1))/dt + calc_fx(slip,v(i-1),fx_lookup_table)*halbach_wheel_parameters.ro + calc_pl(slip,v(i-1),pl_lookup_table,halbach_wheel_parameters) * (v(i-1)+slip)/halbach_wheel_parameters.ro - torque_motor(i)), [slips(i-1) - 1, slips(i)]);
+        slips(i) = fzero(@(slip) (halbach_wheel_parameters.i * ((v(i-1)+slip)/halbach_wheel_parameters.ro - omega(i-1))/dt + calc_fx(slip,v(i-1),fx_lookup_table)*halbach_wheel_parameters.ro - torque_motor(i)), [slips(i-1) - 1, slips(i)]);
+
         % Recalculate dependent values
         f_thrust_wheel(i) = calc_fx(slips(i), v(i-1), fx_lookup_table);
         torque(i) = torque_motor(i) - halbach_wheel_parameters.ro*f_thrust_wheel(i);
         power_loss(i) = n_wheel*calc_pl(slips(i), v(i-1), pl_lookup_table, halbach_wheel_parameters);
         omega(i) = (slips(i)+v(i-1))/halbach_wheel_parameters.ro;
-        
     end
     
     % Calculate total x forces
-    f_x_pod(i) = f_thrust_wheel(i)*n_wheel;
+    if phase == 2
+        f_x_pod(i) = f_thrust_wheel(i)*n_wheel - braking_force*n_brake;
+    else
+        f_x_pod(i) = f_thrust_wheel(i)*n_wheel;
+    end
     
     % Calculate lateral force from Halbach wheel and total y force
     f_lat_wheel(i) = calc_fy(slips(i), v(i-1), halbach_wheel_parameters);
@@ -74,14 +82,6 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
     
     % Calculate acceleration, velocity and distance
     a(i) = f_x_pod(i)/halbach_wheel_parameters.M;
-    
-    % EmBrake braking
-    switch phase
-        case 2
-            f_lat_wheel(i) = 0;
-            f_y_pod(i) = 0;
-            a(i) = -a_embrakes;
-    end
     
     % Calculate trajectory
     v(i) = v(i-1) + dt*a(i);
@@ -91,13 +91,6 @@ function [v,a,distance,theta,omega,torque,torque_lat,torque_motor,power,power_lo
     torque_lat(i) = halbach_wheel_parameters.ro*halbach_wheel_parameters.w*f_lat_wheel(i);
     power(i) = f_x_pod(i)*v(i); % power output = force * velocity
     power_input(i) = power(i)+power_loss(i); % ignoring inertia
-    
-    % When using embrakes we set the power input and motor torque to 0
-    switch phase
-        case 2
-            power_input(i) = 0;
-            torque_motor(i) = 0;
-    end
     
     efficiency(i) = power(i)/power_input(i);
 
