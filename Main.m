@@ -27,14 +27,18 @@ ct_lookup_table = load('Parameters/coggingTorqueLookupTable.mat');      % Intera
 os_coefficients = load('Parameters/optimalSlipCoefficients.mat');       % Optimal slip coefficients
 
 % Setup parameters
-dt = 1/100;                         % Time step (see note above)
-tmax = 120;                         % Maximum allowed duration of run
-n_wheel_pairs = 2;                  % Number of wheel pairs
-n_wheel = n_wheel_pairs * 2;        % Number of wheels
-n_brake = 4;                        % Number of brakes
-braking_force = 1050;               % Force from a single brake pad
-deceleration_total = 4 * braking_force / halbach_wheel_parameters.M; % Braking deceleration from all brakes
-stripe_dist = 100 / 3.281;          % Distance between stripes
+dt = 1/100;                                                 % Time step (see note above)
+tmax = 120;                                                 % Maximum allowed duration of run
+n_wheel_pairs = 2;                                          % Number of wheel pairs
+n_wheel = n_wheel_pairs * 2;                                % Number of wheels
+n_brake = 2;                                                % Number of brakes
+cof = 0.38;                                                 % Coefficient of kinetic friction of the brake pads
+spring_compression = 30;                                    % Spring compression in [mm] when wedge is pressing against rail
+spring_coefficient = 20.6;                                  % Spring coefficient in [N/mm]
+actuation_force = spring_compression * spring_coefficient;  % Spring actuation force
+braking_force = actuation_force * cof / (tan(0.52) - cof);  % Force from a single brake pad
+deceleration_total = n_brake * braking_force / halbach_wheel_parameters.M; % Braking deceleration from all brakes
+stripe_dist = 100 / 3.281;                                  % Distance between stripes
 number_of_stripes = floor(halbach_wheel_parameters.l / stripe_dist); % Total number of stripes we will detect
 
 %% Initialize arrays
